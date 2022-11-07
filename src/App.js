@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
+
 import Blog from './components/Blog'
+import Notification from './components/Notification'
+
 import blogService from './services/blogs'
 import loginService from './services/login'
 
@@ -9,6 +12,7 @@ const App = () => {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [user, setUser] = useState(null)
+    const [notification, setNotification] = useState({})
 
     useEffect(() => {
         blogService.getAll().then((blogs) => setBlogs(blogs))
@@ -42,11 +46,13 @@ const App = () => {
             setUsername('')
             setPassword('')
         } catch (exception) {
-            console.log('Wrong credentials')
-            /* setErrorMessage('Wrong credentials')
+            setNotification({
+                message: exception.response.data.error,
+                type: 'error',
+            })
             setTimeout(() => {
-                setErrorMessage(null)
-            }, 5000) */
+                setNotification({})
+            }, 3000)
         }
     }
 
@@ -59,10 +65,27 @@ const App = () => {
     const addBlog = (event) => {
         event.preventDefault()
 
-        blogService.create(newBlog).then((returnedBlog) => {
-            setBlogs(blogs.concat(returnedBlog))
-            setNewBlog({})
-        })
+        blogService
+            .create(newBlog)
+            .then((returnedBlog) => {
+                setBlogs(blogs.concat(returnedBlog))
+                setNewBlog({})
+                setNotification({
+                    message: `a new blog ${returnedBlog.title} by ${returnedBlog.author} added`,
+                })
+                setTimeout(() => {
+                    setNotification({})
+                }, 3000)
+            })
+            .catch((error) => {
+                setNotification({
+                    message: error.response.data.error,
+                    type: 'error',
+                })
+                setTimeout(() => {
+                    setNotification({})
+                }, 3000)
+            })
     }
 
     const handleBlogChange = (event) => {
@@ -75,7 +98,7 @@ const App = () => {
 
     const loginForm = () => (
         <form onSubmit={handleLogin}>
-            <h2>Log in to application</h2>
+            <h2>log in to application</h2>
             <div>
                 username{' '}
                 <input
@@ -104,7 +127,7 @@ const App = () => {
             <div>
                 title{' '}
                 <input
-                    value={newBlog.title}
+                    value={newBlog.title || ''}
                     name='title'
                     onChange={handleBlogChange}
                 />
@@ -112,7 +135,7 @@ const App = () => {
             <div>
                 author{' '}
                 <input
-                    value={newBlog.author}
+                    value={newBlog.author || ''}
                     name='author'
                     onChange={handleBlogChange}
                 />
@@ -120,7 +143,7 @@ const App = () => {
             <div>
                 url{' '}
                 <input
-                    value={newBlog.url}
+                    value={newBlog.url || ''}
                     name='url'
                     onChange={handleBlogChange}
                 />
@@ -129,11 +152,7 @@ const App = () => {
         </form>
     )
 
-    if (user === null) {
-        return <div>{loginForm()}</div>
-    }
-
-    return (
+    const blogView = () => (
         <div>
             <h2>blogs</h2>
             <div>
@@ -144,6 +163,13 @@ const App = () => {
             {blogs.map((blog) => (
                 <Blog key={blog.id} blog={blog} />
             ))}
+        </div>
+    )
+
+    return (
+        <div>
+            <Notification notification={notification} />
+            {user === null ? loginForm() : blogView()}
         </div>
     )
 }
