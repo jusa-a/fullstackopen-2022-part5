@@ -11,7 +11,7 @@ const BlogForm = ({ createBlog }) => {
         setNewBlog(blogObject)
     }
 
-    const addNote = (event) => {
+    const addBlog = (event) => {
         event.preventDefault()
         createBlog(newBlog)
     }
@@ -20,7 +20,7 @@ const BlogForm = ({ createBlog }) => {
         <div>
             <h2>Create a new blog</h2>
 
-            <form onSubmit={addNote}>
+            <form onSubmit={addBlog}>
                 <div>
                     title:{' '}
                     <input
