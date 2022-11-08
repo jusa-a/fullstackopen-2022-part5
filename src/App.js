@@ -17,10 +17,8 @@ const App = () => {
     const [notification, setNotification] = useState({})
 
     useEffect(() => {
-        blogService
-            .getAll()
-            .then((blogs) => setBlogs(blogs.sort((a, b) => b.likes - a.likes)))
-    }, [blogs])
+        blogService.getAll().then((blogs) => setBlogs(blogs))
+    }, [])
 
     useEffect(() => {
         const loggedUserJSON = window.localStorage.getItem('loggedBlogappUser')
@@ -90,13 +88,22 @@ const App = () => {
             })
     }
 
+    const deleteBlog = async (blog) => {
+        if (window.confirm(`Remove blog ${blog.title} by ${blog.author}`)) {
+            await blogService.remove(blog.id)
+            setBlogs(blogs.filter((b) => b.id !== blog.id))
+        }
+    }
+
     const handleLike = async (blogObject) => {
         const updatedBlog = await blogService.update(blogObject.id, {
             likes: blogObject.likes + 1,
         })
         setBlogs(
             blogs.map((blog) =>
-                blog.id !== blogObject.id ? blog : updatedBlog
+                blog.id !== blogObject.id
+                    ? blog
+                    : { ...blog, likes: updatedBlog.likes }
             )
         )
     }
@@ -114,9 +121,17 @@ const App = () => {
             <Togglable buttonLabel='new blog' ref={blogFormRef}>
                 <BlogForm createBlog={addBlog} />
             </Togglable>
-            {blogs.map((blog) => (
-                <Blog key={blog.id} blog={blog} handleLike={handleLike} />
-            ))}
+            {blogs
+                .sort((a, b) => b.likes - a.likes)
+                .map((blog) => (
+                    <Blog
+                        key={blog.id}
+                        blog={blog}
+                        user={user}
+                        handleLike={handleLike}
+                        deleteBlog={deleteBlog}
+                    />
+                ))}
         </div>
     )
 
