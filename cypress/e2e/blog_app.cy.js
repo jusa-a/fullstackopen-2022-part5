@@ -99,6 +99,23 @@ describe('Blog app', function () {
                     .parent()
                     .should('not.contain', 'remove')
             })
+
+            it('blogs are sorted by likes in descending order', function () {
+                cy.get('.blog').eq(0).as('first').contains('view').click()
+                cy.get('.blog').eq(1).as('second').contains('view').click()
+                cy.get('.blog').eq(2).as('third').contains('view').click()
+
+                cy.get('@third').contains('like').click()
+                cy.wait(50)
+                cy.get('@third').contains('like').click()
+                cy.wait(50)
+                cy.get('@second').contains('like').click()
+                cy.wait(50)
+
+                cy.get('.blog').eq(0).should('contain', 'third blog')
+                cy.get('.blog').eq(1).should('contain', 'second blog')
+                cy.get('.blog').eq(2).should('contain', 'first blog')
+            })
         })
     })
 })
