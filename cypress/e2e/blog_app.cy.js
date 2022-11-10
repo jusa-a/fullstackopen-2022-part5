@@ -50,7 +50,7 @@ describe('Blog app', function () {
             cy.contains('a blog created by cypress cypress')
         })
 
-        describe('and some blogs exist', function () {
+        describe('and some blogs exist,', function () {
             beforeEach(function () {
                 cy.createBlog({
                     title: 'first blog',
@@ -74,6 +74,30 @@ describe('Blog app', function () {
 
                 cy.contains('like').click()
                 cy.contains('like').parent().should('contain', '1')
+            })
+
+            it('user can delete a blog they created', function () {
+                cy.contains('first blog').contains('view').click()
+                cy.contains('remove').click()
+                cy.get('html').should('not.contain', 'first blog')
+            })
+
+            it('blogs from other user cannot be deleted', function () {
+                cy.contains('logout').click()
+
+                const otherUser = {
+                    name: 'Other Tester',
+                    username: 'othertester',
+                    password: 'secret',
+                }
+                cy.request('POST', 'http://localhost:3003/api/users', otherUser)
+
+                cy.login({ username: 'othertester', password: 'secret' })
+
+                cy.contains('first blog').contains('view').click()
+                cy.contains('first blog')
+                    .parent()
+                    .should('not.contain', 'remove')
             })
         })
     })
